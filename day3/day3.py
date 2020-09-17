@@ -67,7 +67,7 @@ def find_intact_rectangle(rectangles, matrix):
     return None
 
 def run_day_three():
-    """Run day three part 1 & 2 
+    """Run day three part 1 & 2
     """
     inp = read_and_strip()
     area_matrix, area = calculate_area_matrix(inp, 1000, 1000)
