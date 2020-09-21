@@ -88,19 +88,19 @@ def assign_points(points, point_list):
     of points in points that are exclusively closest to them """
     max_x, max_y, min_x, min_y = max_values(points)
 
-    for x in range(min_x-1, max_x+2):
-        for y in range(min_y-1, max_y+2):
+    for x in range(min_x, max_x+1):
+        for y in range(min_y, max_y+1):
             # start with arbitrary point
             closest_point = point_list[0]
             add = True
             for point in point_list:
                 manhattan_distance1 = point.manhattan_distance((x, y))
                 manhattan_distance2 = closest_point.manhattan_distance((x, y))
-                if manhattan_distance1 == manhattan_distance2 and \
-                   point != closest_point:
-                    add = False
-                    break
-                elif manhattan_distance1 < manhattan_distance2:
+                #if manhattan_distance1 == manhattan_distance2 and \
+                #   point != closest_point:
+                #    add = False
+                #    break
+                if manhattan_distance1 < manhattan_distance2:
                     closest_point = point
 
             if add:
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     input = read_and_strip()
     points = format_list(input)
     point_list = create_points(points)
-    print(point_list)
+    #print(point_list)
     assign_points(points, point_list)
 
     #sum_point = sum([point.closest_points for point in total_points])
