@@ -10,7 +10,6 @@ class Point:
         self.y = y
         self.edge_point = edge
         self.closest_points = 0
-        self.closest_points_list = []
 
     def __str__(self):
         return ("Point (" + str(self.x) + ", " + str(self.y) + ", " + \
@@ -30,9 +29,8 @@ class Point:
         diff_x = abs(self.x - point[0])
         return (diff_y + diff_x)
 
-    def add_closest_point(self, point):
+    def add_closest_point(self):
         self.closest_points += 1
-        self.closest_points_list.append(point)
 
     def __eq__(self, other):
         return (
@@ -91,25 +89,40 @@ def assign_points(points, point_list):
     for x in range(min_x, max_x+1):
         for y in range(min_y, max_y+1):
             # start with arbitrary point
-            closest_point = point_list[0]
-            add = True
+            manhattan_list = []
             for point in point_list:
-                manhattan_distance1 = point.manhattan_distance((x, y))
-                manhattan_distance2 = closest_point.manhattan_distance((x, y))
-                #if manhattan_distance1 == manhattan_distance2 and \
-                #   point != closest_point:
-                #    add = False
-                #    break
-                if manhattan_distance1 < manhattan_distance2:
-                    closest_point = point
-
-            if add:
+                manhattan_distance = point.manhattan_distance((x, y))
+                manhattan_list.append((point, manhattan_distance))
+                
+            manhattan_list.sort(key=lambda x: x[1])
+            closest_point = manhattan_list[0][0]
+            # if distance still in the dict duplicate nodes
+            # are equally close
+            if manhattan_list[0][1] != manhattan_list[1][1]:
                 if (x == max_x or x == min_x or y == min_y or y == max_y):
                     closest_point.set_edge_point()
 
-                closest_point.add_closest_point((x, y))
+                closest_point.add_closest_point()
         
     return point_list
+
+def calculate_region(points, point_list):
+    """ part2 - calculates the region where all points are less than
+    10000 mhd away from all given points in point_list """
+    max_x, max_y, min_x, min_y = max_values(points)
+    safe_list = []
+    for x in range(min_x, max_x+1):
+        for y in range(min_y, max_y+1):
+            # start with arbitrary point
+            total_distance = 0
+            for point in point_list:
+                manhattan_distance = point.manhattan_distance((x, y))
+                total_distance += manhattan_distance
+            if (total_distance < 10000):
+                safe_list.append((x,y))
+            
+        
+    return safe_list
 
 def safest_point(point_list):
     """ Returns the non-edge point with most closest points """
@@ -125,9 +138,7 @@ if __name__ == "__main__":
     input = read_and_strip()
     points = format_list(input)
     point_list = create_points(points)
-    #print(point_list)
+    # assigns each given coordinate their amount of closest points
     assign_points(points, point_list)
-
-    #sum_point = sum([point.closest_points for point in total_points])
-    print(point_list)
-    print(safest_point(point_list))
+    print("Part 1, safest point: " + str(safest_point(point_list)))
+    print("Part 2: " + str(len(calculate_region(points, point_list))))
