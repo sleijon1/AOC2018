@@ -4,19 +4,19 @@ sys.path.append("../")
 from day1.day1part2 import read_and_strip
 
 ASCII_VALUE_OFFSET = 64
-TIME_CONSTANT = 60
 
 class WorkerTestCase(unittest.TestCase):
+    """ Testing basic Worker class functionality """
     def setUp(self):
         self.worker = Worker("worker 1")
         self.worker.assign("D")
 
     def test_tick(self):
-        self.worker.tick()
-        self.worker.tick()
-        self.worker.tick()
+        self.worker.tick(0)
+        self.worker.tick(0)
+        self.worker.tick(0)
         self.assertEqual(self.worker.work, 'D', "tick not working 2")
-        self.worker.tick()
+        self.worker.tick(0)
         self.assertEqual(self.worker.record, ['D', 'D', 'D', 'D'], "tick not working")
         self.assertEqual(self.worker.work, '.', "tick not working 2")
 
@@ -35,11 +35,11 @@ class Worker:
     def assign(self, work):
         self.work = work
 
-    def tick(self):
+    def tick(self, time_constant=0):
         """ advances the time by a problem second """
         self.record.append(self.work)
         if self.work != '.':
-            if self.record.count(self.work) == ord(self.work) + TIME_CONSTANT - ASCII_VALUE_OFFSET:
+            if self.record.count(self.work) == ord(self.work) + time_constant - ASCII_VALUE_OFFSET:
                 work_done = self.work
                 self.work = '.'
                 return work_done
@@ -54,6 +54,8 @@ class Worker:
         return str(self)
 
     def last_worked(self):
+        """ calculates the latest second that the Worker instance
+        had work in their record"""
         time = 0
         for i in range(0, len(self.record)):
             if self.record[i] != '.':
@@ -61,6 +63,7 @@ class Worker:
         return time
 
 def create_workers(workers=2):
+    """ Creates workers amount of workers and returns them in a list """
     worker_list = []
     for i in range(1, workers+1):
         new_worker = Worker("Worker " + str(i))
@@ -68,8 +71,13 @@ def create_workers(workers=2):
     return worker_list
 
 
-def calculate_traversal_timed(node_list, wrkers=5):
-    """ Calculate traversal respecting dependency """
+def calculate_traversal_timed(node_list, wrkers=5, time_constant=0):
+    """ Calculate traversal respecting dependency and time it takes for each
+    node
+    Keyword arguments:
+    node_list -- list of dependencies
+    wrkers -- amount of workers that can be assigned work
+    """
     workers = create_workers(wrkers)
     print(workers)
     unique_entries = []
@@ -110,7 +118,7 @@ def calculate_traversal_timed(node_list, wrkers=5):
 
         # advance every worker one second
         for worker in workers:
-            tick_result = worker.tick()
+            tick_result = worker.tick(time_constant)
             if tick_result is not None:
                 traversal.append(tick_result)
 
@@ -181,52 +189,42 @@ def format_input(inp):
     return formatted_list
 
 def suite():
+    """ Simple test suite """
     suite = unittest.TestSuite()
     suite.addTest(WorkerTestCase('test_tick'))
     return suite
 
-def display_workers(workers):
+def last_worked_workers(workers):
+    """ calls last_worked() on workers and returns list of the their
+    results
+    """
+    last_worked = []
     for worker in workers:
-        print("\n " + str(worker) + ".\n Schedule: " + str(worker.record) + \
-              "\n Last time worked: " + str(worker.last_worked()) \
-              +"\n Length of record: " + str(len(worker.record)))
-
-def calculate_time(workers, fac):
-    last_second = 0
-    last_worker = None
-    factor = fac
-    for worker in workers:
-        if worker.last_worked() > last_second:
-            last_second = worker.last_worked()
-            last_worker = worker
-    different_nodes = list(set(last_worker.record))
-    total_time = 0
-    if '.' in different_nodes:
-        different_nodes.pop(different_nodes.index('.'))
-    for step in different_nodes:
-        total_time += ord(step)-ASCII_VALUE_OFFSET+factor
-
-    print("amount of . : " + str(last_worker.record.count('.')))
-    return total_time+last_worker.record.count('.')
+        print("\n " + str(worker) + "\n Last time worked: " + str(worker.last_worked()))
+        last_worked.append(worker.last_worked())
+    return last_worked
 
 def test_simple():
     """ only works without time constant """
     inp_test = read_and_strip(file_name="input2.txt")
     node_test = format_input(inp_test)
     _, workers_test = calculate_traversal_timed(node_test, 2)
-    assert(calculate_time(workers_test,0)==15)
+    last_worked = last_worked_workers(workers_test)
+    bottleneck = max(last_worked)+1
+    print(bottleneck)
+    assert(bottleneck==15)
     return True
 
 if __name__ == "__main__":
-    #test_simple()
+    test_simple()
 
     inp = read_and_strip(file_name="input.txt")
-
     node_list = format_input(inp)
-    traversal_list, workers =  calculate_traversal_timed(node_list, 5)
+    traversal_list, workers =  calculate_traversal_timed(node_list, 5, time_constant=60)
     print("".join(traversal_list))
-    display_workers(workers)
-    print(calculate_time(workers, 60))
-    #runner = unittest.TextTestRunner()
-    #runner.run(suite())
+    bottleneck = max(last_worked_workers(workers)) + 1 # add one since second starts at 0
+    print("Bottleneck: " + str(bottleneck))
+
+    runner = unittest.TextTestRunner()
+    runner.run(suite())
 
