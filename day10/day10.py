@@ -10,7 +10,7 @@ fig = plt.figure()
 #creating a subplot 
 ax1 = fig.add_subplot(1,1,1)
 
-def animate(i):
+def animate(_):
     data = open('stock.txt','r').read()
     lines = data.split('\n')
     lines.pop(-1)
@@ -23,15 +23,15 @@ def animate(i):
         ys.append(float(y))
 
     ax1.clear()
-    ax1.plot(xs, ys)
 
     plt.xlabel('Date')
     plt.ylabel('Price')
-    plt.title('Live graph with matplotlib')	
+    plt.title('Live graph with matplotlib')
+    plt.scatter(xs, ys)
 
 if __name__ == "__main__":
     inp = read_and_strip(file_name="small_input.txt")
 
+    ani = animation.FuncAnimation(fig, animate, interval=1000)
     plt.show()
-    ani = animation.FuncAnimation(fig, animate, interval=1000) 
     print(inp)
