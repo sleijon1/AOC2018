@@ -25,7 +25,7 @@ def marble_game(players, points):
             index_removal = circle.index(current_marble)-7
             if index_removal < 0:
                 index_removal = len(circle)+index_removal
-            
+
             marble_index = index_removal
             # marble 7 steps to the left
             player.append(circle[marble_index])
@@ -59,10 +59,10 @@ def format_input(inp):
 if __name__ == "__main__":
     inp = read_and_strip()
     players, points = format_input(inp)
-    circle, players = marble_game(players, points)
+    circle, players = marble_game(players, points*100)
     player_scores = [sum(players[player]) for player in players]
     print(player_scores)
     print(max(player_scores))
     #print("circle: " + str(circle))
-    
+
     print(inp)
