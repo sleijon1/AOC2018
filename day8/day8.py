@@ -34,6 +34,24 @@ class Node:
                 self.child_nodes[self.child_nodes.index(node)] = new_node
                 break
 
+    def node_value(self):
+        """ Calculates the value of the node
+        Value of node is recursively defined as
+        value of child nodes indexed by metadata entries.
+        Value of node with zero child nodes is sum of metadata entries.
+        """
+        value = 0
+        if self.child_nodes == []:
+            return sum(self.metadata_entries)
+
+        for child_number in self.metadata_entries:
+            child_number = child_number-1
+            if child_number < len(self.child_nodes):
+                child_value = self.child_nodes[child_number].node_value()
+                value += child_value
+                
+        return value
+
 def generate_tree(inp, start_index=0, root=None, metadata_sum=0):
     """ recursively generates the tree formed by input argument
     Keyword args:
@@ -90,12 +108,18 @@ if __name__ == "__main__":
     s_input = format_input(small_input)
     test_Node() # simple Node test
     small_tree, _, md_sum = generate_tree(s_input) # ignore recursive index return
+    assert(small_tree.node_value()==66)
     assert(md_sum==138)
     print("small tree test successful")
+    #print(small_tree)
 
+
+    
     problem_input = read_and_strip(file_name="input.txt")
     p_input = format_input(problem_input)
     problem_tree, _, md_sum2 = generate_tree(p_input)
     assert(md_sum2==48155)
-    print("problem tree test successful")
-    print(md_sum2)
+    print("-----------\nproblem tree test successful")
+    print("problem tree md sum: " + str(md_sum2))
+    value = problem_tree.node_value()
+    print("problem tree root value: " + str(value))
