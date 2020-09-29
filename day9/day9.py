@@ -4,7 +4,7 @@ sys.path.append("../")
 from day1.day1part2 import read_and_strip
 
 def marble_game(players, points):
-    """ Plays a game of Elvish marble
+    """ Plays a game of Elfish marble
     Keyword args:
     players: amount of players
     points: amount of marbles(value of last marble)
