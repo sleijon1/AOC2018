@@ -64,5 +64,8 @@ if __name__ == "__main__":
     print(player_scores)
     print(max(player_scores))
     #print("circle: " + str(circle))
-
     print(inp)
+
+    r_file = open("result.txt", "a")
+    r_file.write(str(max(player_scores)))
+    r_file.close
