@@ -16,7 +16,7 @@ def marble_game(players, points):
         players_dict[player] = 0
 
     current_marble = 0
-    circle = blist([])
+    circle = blist([]) # list implementation - O(logn) insertion
     circle.append(current_marble)
     player_index = 0
     index = 0
@@ -65,17 +65,11 @@ def format_input(inp):
 
 if __name__ == "__main__":
     inp = read_and_strip()
-    players, points = format_input(inp)
+    players_amount, points = format_input(inp)
     start = time.time()
-    circle, players = marble_game(players, points*100)
+    circle, players = marble_game(players_amount, points*100)
     end = time.time()
-    print(end-start)
+    print("Runtime: " + str(end-start))
     player_scores = [players[player] for player in players]
-    print(player_scores)
-    print(max(player_scores))
-    #print("circle: " + str(circle))
-    print(inp)
-
-    r_file = open("result.txt", "a")
-    r_file.write(str(max(player_scores)))
-    r_file.close
+    print("Player with highest score: " + str(max(player_scores)))
+    print("(Players: " + str(players_amount) + ". Marbles: " + str(points) + ".)")
