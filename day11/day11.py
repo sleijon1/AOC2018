@@ -17,11 +17,14 @@ def cell_value(x, y, serial_number=1718):
     return power_level
 
 def largest_inner(matrix):
-    """ returns the top-left coord of the
-    largest inner matrix determined by adding cell value
+    """ calculates largest inner matrix by value
 
     Keyword args:
     matrix -- the matrix to calculate
+    Returns:
+    the sum of cell values in the largest matrix,
+    the top left coords of the largest matrix,
+    the size of the largest matrix
     """
     row = matrix.shape[0]
     col = matrix.shape[1]
