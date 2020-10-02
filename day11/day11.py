@@ -40,7 +40,7 @@ def largest_inner(matrix):
                                 power_level += matrix[j, l]
                         if power_level > max_pl:
                             max_pl = power_level
-                            last_coords = j-2, l-2
+                            last_coords = (j-size)+1, (l-size)+1
         print("max power lvl: " + str(max_pl) + ". coords: " + str(last_coords) +\
               " | size: " + str(size) + "x" + str(size))
     return max_pl, last_coords, size
