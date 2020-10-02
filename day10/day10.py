@@ -102,6 +102,7 @@ if __name__ == "__main__":
     print(points)
     lightpoints = LightPoints(points)
     aligned_points = align_stars(lightpoints)
+    print("Elapsed time: " + str(aligned_points.elapsed))
     plot_graph(aligned_points)
 
 
