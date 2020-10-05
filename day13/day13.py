@@ -107,6 +107,11 @@ def tick(inp, carts):
                     #print("next row:\n" + "".join(inp[y+1]))
                     #print("cart position: " + str(cart.position))
                     cart.position = inp[new_y][new_x]
+                    if cart.position == '<' or cart.position == '>' \
+                       or cart.position == '^' or cart.position == 'v':
+                        #TODO bug
+                        print(cart.position)
+                        exit()
                     inp[new_y][new_x] = cart.direction
                     inp[y][x] = old_pos
                     if (new_x, new_y) in updated:
