@@ -4,6 +4,7 @@ sys.path.append("../")
 from day1.day1part2 import read_and_strip
 
 class Cart:
+    """ Cart class adhering to specific movement rules """
     def __init__(self, x, y, direction):
         self.coordinates = {"x": x,
                             "y": y,
@@ -16,6 +17,10 @@ class Cart:
             (1, "^"):"<",
             (1, ">"):"^",
             (1, "<"):"v",
+            (2, "v"):"v",
+            (2, "^"):"^",
+            (2, ">"):">",
+            (2, "<"):"<",
             (3, "v"):"<",
             (3, "^"):">",
             (3, ">"):"v",
@@ -25,15 +30,13 @@ class Cart:
         self.position = ""
 
     def take_turn(self):
-        take = self.turn
+        new_direction = self.table[(self.turn, self.direction)]
         if self.turn < 3:
             self.turn += 1
-        else:
+        elif self.turn == 3:
             self.turn = 1
-        if take == 2:
-            return self.direction
-        else:
-            return self.table[(take, self.direction)]
+
+        return new_direction
 
     def __str__(self):
         return "Cart: " + str((self.x, self.y, self.direction, self.position))
@@ -85,6 +88,7 @@ def print_map(map_):
         print("".join(row))
 
 def tick(inp, carts):
+    """ moves each cart once, returns position on collison otherwise None """
     updated = []
     for y, row in enumerate(inp):
         for x, col in enumerate(row):
@@ -95,31 +99,19 @@ def tick(inp, carts):
                     continue
                 if check_cart in carts:
                     cart = carts[carts.index(check_cart)]
-                    print("cart not moved: " + str(cart))
-                    # need to check if cart is on crossroads or curve
-                    cart.move() #tick current cart
-                    print("cart moved: " + str(cart))
+                    cart.move() 
                     new_x = cart.x
                     new_y = cart.y
                     old_pos = cart.position
-                    #print("previous row:" + str(y-1) + "\n" + "".join(inp[y-1]))
-                    #print("current row:\n" + "".join(inp[y]))
-                    #print("next row:\n" + "".join(inp[y+1]))
-                    #print("cart position: " + str(cart.position))
-                    cart.position = inp[new_y][new_x]
-                    if cart.position == '<' or cart.position == '>' \
-                       or cart.position == '^' or cart.position == 'v':
-                        #TODO bug
-                        print(cart.position)
-                        exit()
-                    inp[new_y][new_x] = cart.direction
                     inp[y][x] = old_pos
-                    if (new_x, new_y) in updated:
-                        print_map(inp)
+                    if len([c for c in carts if c.x == new_x and c.y == new_y and c is not cart]) > 0:
+                        print("Carts collided! They collided at: " + str((new_x, new_y)))
                         return (new_x, new_y)
                     else:
-                        updated.append((new_x,new_y))
-    print(carts)
+                        cart.position = inp[new_y][new_x]
+                        inp[new_y][new_x] = cart.direction
+                        updated.append((new_x, new_y))
+                            
     return None
 
 
@@ -135,31 +127,30 @@ def create_carts(inp):
                 carts.append(cart)
             elif col == '^' or col == 'v':
                 cart = Cart(x, y, col)
-                cart.position = '|' # TODO might not always start on road like this
+                cart.position = '|'
                 carts.append(cart)
     return carts
 
 def tick_til_crash(inp):
+    """ ticks all carts until collision happens"""
     for i in range(len(inp)):
         inp[i] = list(inp[i])
     carts = create_carts(inp)
-    print(carts)
     while(True):
         result = tick(inp, carts)
         if result is not None:
+            inp[result[1]][result[0]] = "X"
             break
-    inp[result[1]][result[0]] = "X"
-    #print_map(inp)
-    print("result: " + str(result))
     return result
 
 if __name__=="__main__":
-    f = open("test_input.txt", "r")
-    test_inp = f.readlines()
+    # small test
+    f_test = open("test_input.txt", "r")
+    test_inp = f_test.readlines()
     assert(tick_til_crash(test_inp) == (7, 3))
 
+    # problem
     f = open("problem_input.txt", "r")
     inp = f.readlines()
-
     tick_til_crash(inp)
     #print(carts)
