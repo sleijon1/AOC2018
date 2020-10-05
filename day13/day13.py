@@ -102,16 +102,15 @@ def tick(inp, carts):
                     new_x = cart.x
                     new_y = cart.y
                     old_pos = cart.position
-                    print("previous row:" + str(y-1) + "\n" + "".join(inp[y-1]))
-                    print("current row:\n" + "".join(inp[y]))
-                    print("next row:\n" + "".join(inp[y+1]))
-                    print("cart position: " + str(cart.position))
+                    #print("previous row:" + str(y-1) + "\n" + "".join(inp[y-1]))
+                    #print("current row:\n" + "".join(inp[y]))
+                    #print("next row:\n" + "".join(inp[y+1]))
+                    #print("cart position: " + str(cart.position))
                     cart.position = inp[new_y][new_x]
-                    if cart.position == " ":
-                        exit()
                     inp[new_y][new_x] = cart.direction
                     inp[y][x] = old_pos
                     if (new_x, new_y) in updated:
+                        print_map(inp)
                         return (new_x, new_y)
                     else:
                         updated.append((new_x,new_y))
@@ -145,17 +144,17 @@ def tick_til_crash(inp):
         if result is not None:
             break
     inp[result[1]][result[0]] = "X"
-    print_map(inp)
+    #print_map(inp)
     print("result: " + str(result))
     return result
 
 if __name__=="__main__":
-    #test_inp = read_and_strip(file_name="test_input.txt")
-    #assert(tick_til_crash(test_inp) == (7, 3))
+    f = open("test_input.txt", "r")
+    test_inp = f.readlines()
+    assert(tick_til_crash(test_inp) == (7, 3))
 
-    inp = read_and_strip(file_name="problem_input.txt")
-    print(inp[130])
-    print(inp[131])
-    print(inp[132])
-    #tick_til_crash(inp)
+    f = open("problem_input.txt", "r")
+    inp = f.readlines()
+
+    tick_til_crash(inp)
     #print(carts)
