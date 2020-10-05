@@ -28,13 +28,15 @@ class Cart:
         take = self.turn
         if self.turn < 3:
             self.turn += 1
+        else:
+            self.turn = 1
         if take == 2:
             return self.direction
         else:
             return self.table[(take, self.direction)]
 
     def __str__(self):
-        return "Cart: " + str((self.x, self.y, self.direction))
+        return "Cart: " + str((self.x, self.y, self.direction, self.position))
 
     def __repr__(self):
         return str(self)
@@ -57,6 +59,8 @@ class Cart:
                 self.direction = ">"
             elif self.direction == ">":
                 self.direction = "^"
+            elif self.direction == "v":
+                self.direction = "<"
         elif self.position == '\\': # standing on curve
             if self.direction == ">":
                 self.direction = "v"
@@ -83,15 +87,11 @@ def print_map(map_):
 def tick(inp, carts):
     updated = []
     for y, row in enumerate(inp):
-        #print(inp)
-        #print(row)
         for x, col in enumerate(row):
             if col == '<' or col == '>' \
                or col == '^' or col == 'v':
                 check_cart = Cart(x, y, col)
-                print(carts)
                 if (x, y) in updated:
-                    print("updated:" + str(updated))
                     continue
                 if check_cart in carts:
                     cart = carts[carts.index(check_cart)]
@@ -102,15 +102,19 @@ def tick(inp, carts):
                     new_x = cart.x
                     new_y = cart.y
                     old_pos = cart.position
+                    print("previous row:" + str(y-1) + "\n" + "".join(inp[y-1]))
+                    print("current row:\n" + "".join(inp[y]))
+                    print("next row:\n" + "".join(inp[y+1]))
+                    print("cart position: " + str(cart.position))
                     cart.position = inp[new_y][new_x]
+                    if cart.position == " ":
+                        exit()
                     inp[new_y][new_x] = cart.direction
                     inp[y][x] = old_pos
-                    updated.append((new_x,new_y))
-                    print_map(inp)
-                    crashes = [(cart.x, cart.y) for cart in carts if \
-                               cart.x == new_x and cart.y == new_y]
-                    if len(crashes) > 1: # always matches on itself TODO
-                        return crashes
+                    if (new_x, new_y) in updated:
+                        return (new_x, new_y)
+                    else:
+                        updated.append((new_x,new_y))
     print(carts)
     return None
 
@@ -131,16 +135,27 @@ def create_carts(inp):
                 carts.append(cart)
     return carts
 
-if __name__=="__main__":
-    inp = read_and_strip(file_name="test_input.txt")
+def tick_til_crash(inp):
     for i in range(len(inp)):
         inp[i] = list(inp[i])
-
     carts = create_carts(inp)
+    print(carts)
     while(True):
         result = tick(inp, carts)
         if result is not None:
             break
+    inp[result[1]][result[0]] = "X"
+    print_map(inp)
     print("result: " + str(result))
+    return result
 
+if __name__=="__main__":
+    #test_inp = read_and_strip(file_name="test_input.txt")
+    #assert(tick_til_crash(test_inp) == (7, 3))
+
+    inp = read_and_strip(file_name="problem_input.txt")
+    print(inp[130])
+    print(inp[131])
+    print(inp[132])
+    #tick_til_crash(inp)
     #print(carts)
