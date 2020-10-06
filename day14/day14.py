@@ -9,14 +9,14 @@ class Elf:
     def __repr__(self):
         return str(self)
 
-def produce_recipes(elfs, score_board, recipes=824501):
+def produce_recipes(elves, score_board, recipes=824501):
     """ Produces recipes amount of recipes+10 and returns the last 10 values """
     while len(score_board) < recipes+10:
-        recipe_sum = sum([elf.current_recipe for elf in elfs])
+        recipe_sum = sum([elf.current_recipe for elf in elves])
         for new_rec in str(recipe_sum):
             if len(score_board)+1 <= recipes+10:
                 score_board.append(int(new_rec))
-        for elf in elfs:
+        for elf in elves:
             step_forward = 1+elf.current_recipe
             if elf.index + step_forward > len(score_board)-1:
                 recipe_index = (elf.index + step_forward) % len(score_board) # loop around
@@ -27,7 +27,7 @@ def produce_recipes(elfs, score_board, recipes=824501):
             elf.index = recipe_index
     return score_board[len(score_board)-10:len(score_board)+1]
 
-def produce_recipes_two(elfs, score_board, score='824501'):
+def produce_recipes_two(elves, score_board, score='824501'):
     """ Produces recipes until sequence score shows up on scoreboard
     returns the index of the first char in sequence
     """
@@ -39,10 +39,10 @@ def produce_recipes_two(elfs, score_board, score='824501'):
                 return i
             else:
                 i += 1
-        recipe_sum = sum([elf.current_recipe for elf in elfs])
+        recipe_sum = sum([elf.current_recipe for elf in elves])
         for new_rec in str(recipe_sum):
             score_board.append(int(new_rec))
-        for elf in elfs:
+        for elf in elves:
             step_forward = 1+elf.current_recipe
             if elf.index + step_forward > len(score_board)-1:
                 recipe_index = (elf.index + step_forward) % len(score_board) # loop around
@@ -54,26 +54,26 @@ def produce_recipes_two(elfs, score_board, score='824501'):
     return None
 
 
-def setup(score_board, no_elfs=2):
-    """ creates no_elfs amount of elfs with score_board
+def setup(score_board, no_elves=2):
+    """ creates no_elves amount of elves with score_board
     recipes and indices
     """
-    elfs = []
-    for i in range(no_elfs):
+    elves = []
+    for i in range(no_elves):
         new_elf = Elf(i, score_board[i])
-        elfs.append(new_elf)
-    return elfs
+        elves.append(new_elf)
+    return elves
 
 if __name__ == "__main__":
     # part one
     score_board=[3, 7]
-    elfs = setup(score_board)
-    last_ten = produce_recipes(elfs, score_board)
+    elves = setup(score_board)
+    last_ten = produce_recipes(elves, score_board)
     as_string = ''.join(map(str, last_ten))
     print("last ten digits: " + as_string)
 
     # part two
     score_board2=[3, 7]
-    elfs2 = setup(score_board2)
-    left_digits = produce_recipes_two(elfs2, score_board2)
+    elves2 = setup(score_board2)
+    left_digits = produce_recipes_two(elves2, score_board2)
     print("digits to the left: " + str(left_digits))
