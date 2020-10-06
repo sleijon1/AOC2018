@@ -10,6 +10,7 @@ class Elf:
         return str(self)
 
 def produce_recipes(elfs, score_board, recipes=824501):
+    """ Produces recipes amount of recipes+10 and returns the last 10 values """
     while len(score_board) < recipes+10:
         recipe_sum = sum([elf.current_recipe for elf in elfs])
         for new_rec in str(recipe_sum):
@@ -27,6 +28,9 @@ def produce_recipes(elfs, score_board, recipes=824501):
     return score_board[len(score_board)-10:len(score_board)+1]
 
 def produce_recipes_two(elfs, score_board, score='824501'):
+    """ Produces recipes until sequence score shows up on scoreboard
+    returns the index of the first char in sequence
+    """
     i = 0
     while True:
         if len(score_board) >= len(score):
@@ -51,6 +55,9 @@ def produce_recipes_two(elfs, score_board, score='824501'):
 
 
 def setup(score_board, no_elfs=2):
+    """ creates no_elfs amount of elfs with score_board
+    recipes and indices
+    """
     elfs = []
     for i in range(no_elfs):
         new_elf = Elf(i, score_board[i])
@@ -58,17 +65,15 @@ def setup(score_board, no_elfs=2):
     return elfs
 
 if __name__ == "__main__":
-    # part one 
-    #score_board=[3, 7]
-    #elfs = setup(score_board)
-    #last_ten = produce_recipes(elfs, score_board)
-    #as_string = ''.join(map(str, last_ten))
-    #print(score_board)
-    #print(as_string)
+    # part one
+    score_board=[3, 7]
+    elfs = setup(score_board)
+    last_ten = produce_recipes(elfs, score_board)
+    as_string = ''.join(map(str, last_ten))
+    print("last ten digits: " + as_string)
 
     # part two
     score_board2=[3, 7]
     elfs2 = setup(score_board2)
     left_digits = produce_recipes_two(elfs2, score_board2)
     print("digits to the left: " + str(left_digits))
-    #print("scoreboard2: " + str(score_board2))
