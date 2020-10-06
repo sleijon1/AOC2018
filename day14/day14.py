@@ -1,3 +1,5 @@
+from math import inf
+
 class Elf:
     def __init__(self, i, recipe=None):
         self.current_recipe = recipe
@@ -19,40 +21,32 @@ def produce_recipes(elfs, score_board, recipes=824501):
                 recipe_index = (elf.index + step_forward) % len(score_board) # loop around
             else:
                 recipe_index = elf.index + step_forward
-            
+
             elf.current_recipe = score_board[recipe_index]
             elf.index = recipe_index
     return score_board[len(score_board)-10:len(score_board)+1]
 
 def produce_recipes_two(elfs, score_board, score='824501'):
-    score_list = list(map(int, score))
-    print(score_list)
     i = 0
-    j = 9
-    while j > 0:
-        if i == len(score_list):
-            return len(score_board) - len(score_list)
-        
+    while True:
+        if len(score_board) >= len(score):
+            score_ = "".join(map(str, score_board[i:i+len(score)]))
+            if score_ == score:
+                return i
+            else:
+                i += 1
         recipe_sum = sum([elf.current_recipe for elf in elfs])
         for new_rec in str(recipe_sum):
             score_board.append(int(new_rec))
-            print(score_board)
-            if score_list[i] == int(new_rec):
-                i += 1
-            else:
-                i = 0
-            print(score_list[i])
-            print(i)                
         for elf in elfs:
             step_forward = 1+elf.current_recipe
             if elf.index + step_forward > len(score_board)-1:
                 recipe_index = (elf.index + step_forward) % len(score_board) # loop around
             else:
                 recipe_index = elf.index + step_forward
-            
+
             elf.current_recipe = score_board[recipe_index]
             elf.index = recipe_index
-        j -= 1 
     return None
 
 
@@ -64,17 +58,17 @@ def setup(score_board, no_elfs=2):
     return elfs
 
 if __name__ == "__main__":
-    # part one
-    score_board=[3, 7]
-    elfs = setup(score_board)
-    last_ten = produce_recipes(elfs, score_board)
-    as_string = ''.join(map(str, last_ten))
-    print(score_board)
-    print(as_string)
+    # part one 
+    #score_board=[3, 7]
+    #elfs = setup(score_board)
+    #last_ten = produce_recipes(elfs, score_board)
+    #as_string = ''.join(map(str, last_ten))
+    #print(score_board)
+    #print(as_string)
 
     # part two
     score_board2=[3, 7]
-    elfs2 = setup(score_board)
-    left_digits = produce_recipes_two(elfs2, score_board2, score="01245")
+    elfs2 = setup(score_board2)
+    left_digits = produce_recipes_two(elfs2, score_board2)
     print("digits to the left: " + str(left_digits))
     #print("scoreboard2: " + str(score_board2))
