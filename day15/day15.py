@@ -21,13 +21,15 @@ class Player:
 
     def attack(self, other):
         """ attacks another player """
-        if (self.__class__ == other.__class__):
+        if (self.__class__.__bases__ == other.__class__.__bases__):
             other.hp -= self.ap
+            print(other.hp)
             return other.hp
         else:
             print("Can not attack non-Player!")
             return None
-
+    def __str__(self):
+        return ("P")
 class Elf(Player):
     def __str__(self):
         #return "Elf(hp:" + str(self.hp) + ", ap:" + str(self.ap) + ")"
@@ -109,13 +111,21 @@ def play_round(map_):
                 # check if opposite player around
                 # if there is one attack instead of search for move
                 # check list of adjacent players - pick lowest one
-                adjacent = [map_[i+1][j], map_[i-1][j], map_[i][j+1], map_[i][j-1]]
+                # up left right down 
+                adjacent = [map_[i+1][j], map_[i][j-1], map_[i][j+1], map_[i-1][j]]
                 if isinstance(col, Elf):
                     enemies = [enemy for enemy in adjacent if isinstance(enemy, Goblin)]
                 elif isinstance(col, Goblin):
                     enemies = [enemy for enemy in adjacent if isinstance(enemy, Elf)]
                 if enemies:
                     # look for weakest enemy in enemies
+                    lowest = enemies[0]
+                    for enemy in enemies:
+                        if enemy.hp < lowest.hp:
+                            lowest = enemy
+                    hp = col.attack(lowest)
+                    if hp <= 0:
+                        map_[lowest.y][lowest.x] = "."
                     print("attack")
                 else:
                     bfs_node = bfs(col, map_)
@@ -134,6 +144,7 @@ def play_round(map_):
 
     for r in map_:
         print(r)
+
 def put_players(init_map):
     """ scan the map and put players where
     there are E's and G's
@@ -157,4 +168,21 @@ if __name__ == "__main__":
     play_round(bfs_inp)
     play_round(bfs_inp)
     play_round(bfs_inp)
-    
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
+    play_round(bfs_inp)
