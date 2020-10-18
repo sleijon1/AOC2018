@@ -76,31 +76,22 @@ def bfs(player, map_):
             return None
         node = queue.pop()
         [x, y], path = node
-        if (x, y) in visited:
-            continue
         new_path = list(path)
         new_path.append((x, y))
 
         visited.add((x, y))
 
-        up = (x, y+1)
-        down = (x, y-1)
+        up = (x, y-1)
+        down = (x, y+1)
         left = (x-1, y)
         right = (x+1, y)
         search_nodes = [up, left, right, down]
-        #print(search_nodes)
+
         # reverses prefered order
         filtered_nodes = [direction for direction in search_nodes
                     if str(map_[direction[1]][direction[0]]) not in (ignore, '#') and
                     direction not in visited]
-        #print("current node: " + str(node[0]))
-        #print("possible nodes: " + str(filtered_nodes))
 
-        #print("\nnode: " + str(node))
-        #print(visited)
-
-        # Keep search order u,l,r,d
-        list.reverse(filtered_nodes)
         for element in filtered_nodes:
             obj = map_[element[1]][element[0]]
             q_item = [element, new_path]
@@ -108,13 +99,15 @@ def bfs(player, map_):
                isinstance(player, Goblin) and isinstance(obj, Elf):
                 return q_item
             else:
-                queue.appendleft(q_item)
+                duplicates = [item[0] for item in queue if item[0] == element]
+                if not duplicates:
+                    queue.appendleft(q_item)
 
 def try_attack(player, map_, players):
     """attacks lowest hp nearby player if there is one """
     i = player.y
     j = player.x
-    adjacent = [map_[i+1][j], map_[i][j-1], map_[i][j+1], map_[i-1][j]]
+    adjacent = [map_[i-1][j], map_[i][j-1], map_[i][j+1], map_[i+1][j]]
     if isinstance(player, Elf):
         enemies = [enemy for enemy in adjacent if isinstance(enemy, Goblin)]
     elif isinstance(player, Goblin):
@@ -122,9 +115,7 @@ def try_attack(player, map_, players):
     else:
         return False
     if enemies:
-        list.reverse(enemies)
         lowest = enemies[0]
-        #print("Enemies: " + str(enemies))
         for enemy in enemies:
             if enemy.hp < lowest.hp:
                 lowest = enemy
@@ -143,42 +134,32 @@ def try_attack(player, map_, players):
 def play_round(map_, players):
     """ plays a complete round """
     moved_players = []
-    same_state = True
     for i, row in enumerate(map_):
         for j, col in enumerate(row):
             if col not in ('.', '#') and col not in moved_players:
-                if try_attack(col, map_, players):
-                    #print("attacked")
-                    if (all(isinstance(p, Elf) for p in players) or \
-                        all(isinstance(p, Goblin) for p in players)):
-                        return GAME_DONE
-                else:
-                    if col.stand_still and same_state:
-                        #print("same state - standing still again")
-                        pass
-                    else:
-                        #print("before bfs")
-                        bfs_node = bfs(col, map_)
-                       # print("after bfs")
-                        if bfs_node is None:
-                            #print("stand still")
-                            col.stand_still = True
-                        else:
-                            #print("bfs_node: " + str(bfs_node))
-                            if len(bfs_node[1]) > 1:
-                                move = bfs_node[1][1]
-                                old_obj = map_[move[1]][move[0]]
-                                map_[move[1]][move[0]] = col
-                                map_[i][j] = old_obj
-                                # update player position
-                                col.move(move)
-                                col.stand_still = False
-                                same_state = False
-                                # try to attack if movement resulted
-                                # in attack range to opponent player
-                                try_attack(col,map_,players)
-                                moved_players.append(col)
+                if not try_attack(col, map_, players):
+                    bfs_node = bfs(col, map_)
+                    if bfs_node is not None:
+                        if len(bfs_node[1]) > 1:
+                            move = bfs_node[1][1]
+                            old_obj = map_[move[1]][move[0]]
+                            map_[move[1]][move[0]] = col
+                            map_[i][j] = old_obj
+                            col.move(move)
+                            try_attack(col, map_, players)
+                            moved_players.append(col)
+    # prints map nicely
+    for r in map_:
+        string = ""
+        for c in r:
+            string = string + str(c)
+        print(string)
 
+    if (all(isinstance(p, Elf) for p in players) or \
+        all(isinstance(p, Goblin) for p in players)):
+        return GAME_DONE
+    else:
+        return None
 
 def put_players(init_map):
     """ scan the map and put players where
@@ -197,10 +178,15 @@ def put_players(init_map):
                 # copy old object
                 obj = init_map[i][j]
             init_map[i][j] = obj
+    print(players)
+    goblins = [goblin for goblin in players if isinstance(goblin, Goblin)]
+    elves = [elf for elf in players if isinstance(elf, Elf)]
+    print("amount of goblins: " + str(len(goblins)))
+    print("amount of elves: " + str(len(elves)))
     return init_map, players
 
 def play_rounds(inp, players, rounds=None):
-    round_ = 1
+    round_ = 0
     if rounds is None:
         # play rounds until one race left
         while True:
@@ -211,8 +197,7 @@ def play_rounds(inp, players, rounds=None):
                 winner_race = str(players[0])
                 print("Winners("  + winner_race + ") won with " + \
                       str(winner_hp) + "hp remaining.")
-                for player in players:
-                    print(player.hp)
+                print(str(winner_race) + " left:" + str(len(players)))
                 return winner_race, winner_hp
             round_ += 1
     else:
