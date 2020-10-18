@@ -1,3 +1,4 @@
+import copy
 from collections import deque
 import sys
 sys.path.append("../")
@@ -9,10 +10,10 @@ GAME_DONE = "D"
 
 class Player:
     """ parent class player """
-    def __init__(self, x, y):
+    def __init__(self, x, y, ap=3, hp=200):
         """ hp = hit points, ap = attack power """
-        self.hp = 200
-        self.ap = 3
+        self.hp = hp
+        self.ap = ap
         self.x = x
         self.y = y
         self.stand_still = False
@@ -131,6 +132,15 @@ def try_attack(player, map_, players):
         return True
     return False
 
+def print_map(map_):
+    # prints map nicely
+    for r in map_:
+        string = ""
+        for c in r:
+            string = string + str(c)
+        print(string)
+
+
 def play_round(map_, players):
     """ plays a complete round """
     moved_players = []
@@ -148,12 +158,7 @@ def play_round(map_, players):
                             col.move(move)
                             try_attack(col, map_, players)
                             moved_players.append(col)
-    # prints map nicely
-    for r in map_:
-        string = ""
-        for c in r:
-            string = string + str(c)
-        print(string)
+    print_map(map_)
 
     if (all(isinstance(p, Elf) for p in players) or \
         all(isinstance(p, Goblin) for p in players)):
@@ -161,7 +166,7 @@ def play_round(map_, players):
     else:
         return None
 
-def put_players(init_map):
+def put_players(init_map, elf_ap=3, goblin_ap=3):
     """ scan the map and put players where
     there are E's and G's
     """
@@ -169,7 +174,7 @@ def put_players(init_map):
     for i, row in enumerate(init_map):
         for j, col in enumerate(row):
             if col == ELF:
-                obj = Elf(j, i)
+                obj = Elf(j, i, ap=elf_ap)
                 players.append(obj)
             elif col == GOBLIN:
                 obj = Goblin(j, i)
@@ -195,19 +200,46 @@ def play_rounds(inp, players, rounds=None):
             if round_result is not None:
                 winner_hp = sum([player.hp for player in players])
                 winner_race = str(players[0])
-                print("Winners("  + winner_race + ") won with " + \
+                winner_ap = str(players[0].ap)
+                print("Winners("  + winner_race + "(ap:" + winner_ap + ")" \
+                      + ") won with " + \
                       str(winner_hp) + "hp remaining.")
                 print(str(winner_race) + " left:" + str(len(players)))
-                return winner_race, winner_hp
+                return winner_race, winner_hp, players
             round_ += 1
     else:
         for r in range(rounds):
             play_round(inp, players)
             #print(players)
 
+def play_game():
+    inp = read_and_strip(file_name="test_bfs.txt")
+    inp = [list(col) for col in inp]
+    # Part one - run event
+    part_one = copy.deepcopy(inp)
+    _, players_one = put_players(part_one)
+    play_rounds(part_one, players_one)
+
+    # Part two - Ensure elvish victory
+    nr_of_elves = len([player for player in put_players(copy.deepcopy(inp))[1] if isinstance(player, Elf)]) # fix horrendous 1-liner
+    part_two = copy.deepcopy(inp)
+    elvish_death = True
+    elf_ap = 3
+    #exit()
+    while elvish_death:
+        _, players_two = put_players(part_two, elf_ap=elf_ap)
+        winner_race, _, winners = play_rounds(part_two, players_two)
+        if winner_race == GOBLIN or (winner_race == ELF and len(winners) < nr_of_elves):
+            elf_ap += 1
+            part_two = copy.deepcopy(inp)
+            print_map(part_two)
+        else:
+            elvish_death = False
+
+
+
 if __name__ == "__main__":
-    bfs_inp = read_and_strip(file_name="test_bfs.txt")
-    bfs_inp = [list(col) for col in bfs_inp]
-    _, players = put_players(bfs_inp)
-    play_rounds(bfs_inp, players)
-    print(players)
+    play_game()
+    #_, players = put_players(bfs_inp)
+    #play_rounds(bfs_inp, players)
+    #print(players)
