@@ -11,10 +11,11 @@ GAME_DONE = "D"
 
 def print_map(map_):
     # prints map nicely
-    for r in map_:
+    for i, r in enumerate(map_):
         string = ""
         for c in r:
             string = string + str(c)
+        string += " " + str(i)
         print(string)
 
 class Player:
@@ -44,30 +45,26 @@ class Player:
     def __str__(self):
         return ("P")
 
-class Elf(Player):
-    def __str__(self):
-        return "E"
-    def __repr__(self):
-        return str(self)
+    def coords(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ")"
+
     def __eq__(self, other):
         return(
             self.__class__ == other.__class__ and
             self.id_num == other.id_num
         )
-    pass
+
+class Elf(Player):
+    def __str__(self):
+        return "E"
+    def __repr__(self):
+        return str(self)
 
 class Goblin(Player):
     def __str__(self):
         return "G"
     def __repr__(self):
         return str(self)
-
-    def __eq__(self, other):
-        return(
-            self.__class__ == other.__class__ and
-            self.id_num == other.id_num
-        )
-    pass
 
 def breadth_first_search(player, map_):
     """ uses breadth_first_search to find closest path
@@ -79,6 +76,7 @@ def breadth_first_search(player, map_):
     queue = deque()
     queue.appendleft([[player.x, player.y], []])
     visited = set()
+    possible_nodes = []
     while True:
         if not queue:
             return None
@@ -89,11 +87,7 @@ def breadth_first_search(player, map_):
 
         visited.add((x, y))
 
-        up = (x, y-1)
-        down = (x, y+1)
-        left = (x-1, y)
-        right = (x+1, y)
-        search_nodes = [up, left, right, down]
+        search_nodes = [(x, y-1), (x-1, y), (x+1, y), (x, y+1)]
         possible_nodes = [direction for direction in search_nodes
                     if str(map_[direction[1]][direction[0]]) not in (ignore, '#') and
                     direction not in visited]
@@ -103,6 +97,7 @@ def breadth_first_search(player, map_):
             q_item = [p_node, new_path]
             if isinstance(player, Elf) and isinstance(obj, Goblin) or \
                isinstance(player, Goblin) and isinstance(obj, Elf):
+
                 return q_item
             else:
                 duplicates = [item[0] for item in queue if item[0] == p_node]
@@ -176,31 +171,27 @@ def put_players(init_map, elf_ap=3, goblin_ap=3):
 
     return init_map, players
 
-def play_rounds(inp, players, rounds=None):
+def play_rounds(inp, players):
     round_ = 1
-    if rounds is None:
-        while True:
-            round_result = play_round(inp, players)
-            print_map(inp)
-            if round_result == GAME_DONE:
-                winner_hp = sum(player.hp for player in players)
-                winner_race = str(players[0])
-                winner_ap = str(players[0].ap)
-                print(players[0])
-                print("Winners("  + winner_race + "(ap:" + winner_ap + ")" \
-                      + ") won with " + \
-                      str(winner_hp) + "hp remaining.")
-                print("Full rounds of combat: " + str(round_-1))
-                print("outcome:" + str((round_-1)*winner_hp))
-                print(str(winner_race) + " left:" + str(len(players)))
+    while True:
+        print_map(inp)
+        round_result = play_round(inp, players)
+        if round_result == GAME_DONE:
+            winner_hp = sum(player.hp for player in players)
+            winner_race = str(players[0])
+            winner_ap = str(players[0].ap)
+            print(players[0])
+            print("Winners("  + winner_race + "(ap:" + winner_ap + ")" \
+                  + ") won with " + \
+                  str(winner_hp) + "hp remaining.")
+            print("Full rounds of combat: " + str(round_-1))
+            print("outcome:" + str((round_-1)*winner_hp))
+            print(str(winner_race) + " left:" + str(len(players)))
 
-                return winner_race, winner_hp, players
-
-            round_ += 1
-    else:
-        for r in range(rounds):
-            play_round(inp, players)
-            #print(players)
+            return winner_race, winner_hp, players
+        for player in players:
+            print(str(player) + str(player.coords()) + "- HP: " +str(player.hp))
+        round_ += 1
 
 def play_game():
     inp = read_and_strip(file_name="test_bfs.txt")
@@ -213,7 +204,7 @@ def play_game():
     # Part two - Ensure elvish victory
     nr_of_elves = len([player for player in put_players(copy.deepcopy(inp))[1] if isinstance(player, Elf)]) 
     part_two = copy.deepcopy(inp)
-    elf_ap = 3
+    elf_ap = 20
     winners = []
     winner_race = None
     while True:
