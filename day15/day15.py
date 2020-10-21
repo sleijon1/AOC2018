@@ -7,6 +7,16 @@ from day1.day1part2 import read_and_strip
 ELF = "E"
 GOBLIN = "G"
 GAME_DONE = "D"
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 def print_map(map_):
@@ -14,7 +24,7 @@ def print_map(map_):
     for i, r in enumerate(map_):
         string = ""
         for c in r:
-            string = string + str(c)
+            string = string +  bcolors.OKGREEN + str(c) + bcolors.ENDC
         string += " " + str(i)
         print(string)
 
