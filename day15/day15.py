@@ -59,24 +59,25 @@ class Elf(Player):
         return "E"
     def __repr__(self):
         return str(self)
-
+    def opponent(self):
+        return GOBLIN
+    
 class Goblin(Player):
     def __str__(self):
         return "G"
     def __repr__(self):
         return str(self)
-
+    def opponent(self):
+        return ELF
+    
 def breadth_first_search(player, map_):
     """ uses breadth_first_search to find closest path
     to target (reading order) """
-    if isinstance(player, Elf):
-        ignore = ELF
-    elif isinstance(player, Goblin):
-        ignore = GOBLIN
     queue = deque()
     queue.appendleft([[player.x, player.y], []])
     visited = set()
     possible_nodes = []
+    possible_paths = list()
     while True:
         if not queue:
             return None
@@ -84,35 +85,30 @@ def breadth_first_search(player, map_):
         (x, y), path = node
         new_path = list(path)
         new_path.append((x, y))
-
         visited.add((x, y))
-
         search_nodes = [(x, y-1), (x-1, y), (x+1, y), (x, y+1)]
         possible_nodes = [direction for direction in search_nodes
-                    if str(map_[direction[1]][direction[0]]) not in (ignore, '#') and
+                    if str(map_[direction[1]][direction[0]]) not in (str(player), '#') and
                     direction not in visited]
 
         for p_node in possible_nodes:
             obj = map_[p_node[1]][p_node[0]]
             q_item = [p_node, new_path]
-            if isinstance(player, Elf) and isinstance(obj, Goblin) or \
-               isinstance(player, Goblin) and isinstance(obj, Elf):
-
-                return q_item
+            if str(obj) == player.opponent():
+                if not possible_paths or len(new_path) <= len(possible_paths[0][1]):
+                    possible_paths.append(q_item)
+                else:
+                    return possible_paths[0][1][1]
             else:
                 duplicates = [item[0] for item in queue if item[0] == p_node]
                 if not duplicates:
                     queue.appendleft(q_item)
-
+        
 def try_attack(player, map_, players):
     """attacks lowest hp nearby player if there is one """
     adjacent = [map_[player.y-1][player.x], map_[player.y][player.x-1], \
                 map_[player.y][player.x+1], map_[player.y+1][player.x]]
-    if isinstance(player, Elf):
-        enemies = [enemy for enemy in adjacent if isinstance(enemy, Goblin)]
-    elif isinstance(player, Goblin):
-        enemies = [enemy for enemy in adjacent if isinstance(enemy, Elf)]
-
+    enemies = [enemy for enemy in adjacent if str(enemy) == player.opponent()]
     if enemies:
         lowest = enemies[0]
         for enemy in enemies:
@@ -130,24 +126,23 @@ def try_attack(player, map_, players):
 def play_round(map_, players):
     """ plays a complete round """
     made_move = []
-    for i, row in enumerate(map_):
-        for j, col in enumerate(row):
-            if col not in ('.', '#') and col not in made_move:
-                reachable_targets = try_attack(col, map_, players)
+    for row in map_:
+        for player in row:
+            if player not in made_move and player not in ("#", "."):
+                reachable_targets = try_attack(player, map_, players)
                 if not reachable_targets:
-                    breadth_first_search_node = breadth_first_search(col, map_)
+                    breadth_first_search_node = breadth_first_search(player, map_)
                     if breadth_first_search_node is not None:
-                        move = breadth_first_search_node[1][1]
-                        old_obj = map_[move[1]][move[0]]
-                        map_[move[1]][move[0]] = col
-                        map_[i][j] = old_obj
-                        col.move(move)
-                        try_attack(col, map_, players)
+                        new_x, new_y = breadth_first_search_node
+                        map_[new_y][new_x] = player
+                        map_[player.y][player.x] = "."
+                        player.move([new_x, new_y])
+                        try_attack(player, map_, players)
                     elif breadth_first_search_node is None \
                          and (all(isinstance(p, Elf) for p in players) or \
                                                    all(isinstance(p, Goblin) for p in players)):
                         return GAME_DONE
-                made_move.append(col)
+                made_move.append(player)
 
 def put_players(init_map, elf_ap=3, goblin_ap=3):
     """ scan the map and put players where
@@ -189,22 +184,22 @@ def play_rounds(inp, players):
             print(str(winner_race) + " left:" + str(len(players)))
 
             return winner_race, winner_hp, players
-        for player in players:
-            print(str(player) + str(player.coords()) + "- HP: " +str(player.hp))
+        #for player in players:
+        #    print(str(player) + str(player.coords()) + "- HP: " +str(player.hp))
         round_ += 1
 
 def play_game():
     inp = read_and_strip(file_name="test_bfs.txt")
     inp = [list(col) for col in inp]
     # Part one - run event
-    #part_one = copy.deepcopy(inp)
-    #_, players_one = put_players(part_one)
-    #play_rounds(part_one, players_one)
-
+    part_one = copy.deepcopy(inp)
+    _, players_one = put_players(part_one)
+    play_rounds(part_one, players_one)
+    exit()
     # Part two - Ensure elvish victory
     nr_of_elves = len([player for player in put_players(copy.deepcopy(inp))[1] if isinstance(player, Elf)]) 
     part_two = copy.deepcopy(inp)
-    elf_ap = 20
+    elf_ap = 3
     winners = []
     winner_race = None
     while True:
