@@ -23,7 +23,7 @@ def print_map(map_):
     # prints map nicely
     for i, r in enumerate(map_):
         string = ""
-        for c in r:
+        for j, c in enumerate(r):
             string = string +  bcolors.OKGREEN + str(c) + bcolors.ENDC
         string += " " + str(i)
         print(string)
@@ -105,10 +105,7 @@ def breadth_first_search(player, map_):
             obj = map_[p_node[1]][p_node[0]]
             q_item = [p_node, new_path]
             if str(obj) == player.opponent():
-                if not possible_paths or len(new_path) <= len(possible_paths[0][1]):
-                    possible_paths.append(q_item)
-                else:
-                    return possible_paths[0][1][1]
+                return q_item[1][1]
             else:
                 duplicates = [item[0] for item in queue if item[0] == p_node]
                 if not duplicates:
