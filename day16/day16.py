@@ -54,8 +54,11 @@ class Computer:
             "addi": self.addi,
 
         }
+        self.opcode_table = {}
         self.regs = regs
 
+    def set_opcode_table(self, table):
+        self.opcode_table = table
     def set_regs(self, values=[0,0,0,0]):
         """ default - reset regs """
         self.regs = values
@@ -124,15 +127,22 @@ def read_file():
         operation[2] = operation[2].split(": ")[1]
         operation[2] = [int(char) for char in operation[2] \
                         if char not in (',',' ', '[', ']')]
-    return formatted
+
+    test_program.split()
+    test_program = test_program.strip().split('\n')
+    for i, op in enumerate(test_program):
+        test_program[i] = [int(op) for op in op.split(' ')]
+
+    return formatted, test_program
 
 def test_opcodes(inp):
     #inp = [[[3,2,1,1],[9,2,1,2],[3,2,2,1]]]
     computer = Computer()
     computer.set_regs()
     op_names = computer.operations.keys()
-
     three_or_more = 0
+    known_ops = {}
+    num_ops = 1
     for sample in inp:
         ops = []
         possible_op = 0
@@ -149,16 +159,34 @@ def test_opcodes(inp):
                 #print("+1")
                 ops.append(op)
                 possible_op += 1
-        if possible_op == 2:
-            print(ops)
-            print(sample[1][0])
+        if possible_op <= num_ops:
+            names = known_ops.values()
+            ops = [x for x in ops if x not in names]
+            if len(ops) == 1:
+                known_ops[sample[1][0]] = ops[0]
+            num_ops += 1
         if possible_op >= 3:
             three_or_more += 1
-    print(three_or_more)
+
+    print("amount of three or more: " + str(three_or_more))
+    return known_ops
+
+def run_test_program(test_program, table):
+    computer = Computer()
+    for op in test_program:
+        opcode = op[0]
+        values = op[1:4]
+        print(op)
+        print(computer.regs)
+        computer.operations[table[opcode]](values)
+    print("Final state registers: " + str(computer.regs))
+    return computer.regs
 
 if __name__ == "__main__":
-    inp = read_file()
+    inp, test_program = read_file()
     test_operations()
-    test_opcodes(inp)
+    table = test_opcodes(inp)
+
+    run_test_program(test_program, table)
     #print(inp)
 
