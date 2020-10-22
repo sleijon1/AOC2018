@@ -33,7 +33,6 @@ def test_operations():
     print("passed all tests.")
 
 class Computer:
-
     def __init__(self, regs=[0, 0, 0, 0]):
         self.operations = {
             "eqir": self.eqir,
@@ -57,8 +56,6 @@ class Computer:
         self.opcode_table = {}
         self.regs = regs
 
-    def set_opcode_table(self, table):
-        self.opcode_table = table
     def set_regs(self, values=[0,0,0,0]):
         """ default - reset regs """
         self.regs = values
@@ -67,41 +64,42 @@ class Computer:
     def __repr__(self):
         return str(self)
 
-    def eqir(self, op): #
+    def eqir(self, op):
         self.regs[op[2]] = int(op[0] == self.regs[op[1]])
-    def eqri(self, op): #
+    def eqri(self, op):
         self.regs[op[2]] = int(self.regs[op[0]] == op[1])
-    def eqrr(self, op): #
+    def eqrr(self, op):
         self.regs[op[2]] = int(self.regs[op[0]] == self.regs[op[1]])
-    def gtir(self, op): #
+    def gtir(self, op):
         self.regs[op[2]] = int(op[0] > self.regs[op[1]])
-    def gtri(self, op): #
+    def gtri(self, op):
         self.regs[op[2]] = int(self.regs[op[0]] > op[1])
-    def gtrr(self, op): #
+    def gtrr(self, op):
         self.regs[op[2]] = int(self.regs[op[0]] > self.regs[op[1]])
-    def setr(self, op): #
+    def setr(self, op):
         self.regs[op[2]] = self.regs[op[0]]
-    def seti(self, op): #
+    def seti(self, op):
         self.regs[op[2]] = op[0]
-    def addr(self, op): #
+    def addr(self, op):
         self.regs[op[2]] = self.regs[op[1]] + self.regs[op[0]]
-    def addi(self, op): #
+    def addi(self, op):
         self.regs[op[2]] = op[1] + self.regs[op[0]]
-    def mulr(self, op): #
+    def mulr(self, op):
         self.regs[op[2]] = self.regs[op[1]] * self.regs[op[0]]
-    def muli(self, op): #
+    def muli(self, op):
         self.regs[op[2]] = op[1] * self.regs[op[0]]
-    def banr(self, op): #
+    def banr(self, op):
         self.regs[op[2]] = self.regs[op[1]] & self.regs[op[0]]
-    def bani(self, op): #
+    def bani(self, op):
         self.regs[op[2]] = op[1] & self.regs[op[0]]
-    def borr(self, op): #
+    def borr(self, op):
         self.regs[op[2]] = self.regs[op[1]] | self.regs[op[0]]
-    def bori(self, op): #
+    def bori(self, op):
         self.regs[op[2]] = op[1] | self.regs[op[0]]
 
 
 def read_file():
+    """ straight formatting """
     f = open("input.txt", "r")
     f = f.read()
     inp, test_program = f.split("\n\n\n")
@@ -136,13 +134,14 @@ def read_file():
     return formatted, test_program
 
 def test_opcodes(inp):
-    #inp = [[[3,2,1,1],[9,2,1,2],[3,2,2,1]]]
+    """ run part one and produce opcode table for
+    part two """
     computer = Computer()
     computer.set_regs()
     op_names = computer.operations.keys()
     three_or_more = 0
     known_ops = {}
-    num_ops = 1
+    found_ops = 1
     for sample in inp:
         ops = []
         possible_op = 0
@@ -151,20 +150,18 @@ def test_opcodes(inp):
         after = sample[2]
         for op in op_names:
             computer.set_regs(list(before))
-            #print("actual before:" + str(before))
-            #print("before:" + str(computer.regs))
-            #print("op: " + op)
             computer.operations[op](instruction)
             if computer.regs == after:
-                #print("+1")
                 ops.append(op)
                 possible_op += 1
-        if possible_op <= num_ops:
-            names = known_ops.values()
-            ops = [x for x in ops if x not in names]
+
+        if possible_op <= found_ops:
+            found_op_names = known_ops.values()
+            ops = [op for op in ops if op not in found_op_names]
             if len(ops) == 1:
                 known_ops[sample[1][0]] = ops[0]
-            num_ops += 1
+            found_ops += 1
+
         if possible_op >= 3:
             three_or_more += 1
 
@@ -176,8 +173,6 @@ def run_test_program(test_program, table):
     for op in test_program:
         opcode = op[0]
         values = op[1:4]
-        print(op)
-        print(computer.regs)
         computer.operations[table[opcode]](values)
     print("Final state registers: " + str(computer.regs))
     return computer.regs
@@ -185,8 +180,6 @@ def run_test_program(test_program, table):
 if __name__ == "__main__":
     inp, test_program = read_file()
     test_operations()
-    table = test_opcodes(inp)
-
-    run_test_program(test_program, table)
-    #print(inp)
+    opcode_table = test_opcodes(inp)
+    run_test_program(test_program, opcode_table)
 
