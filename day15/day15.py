@@ -19,12 +19,15 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-def print_map(map_):
+def print_map(map_, path=[], start=None, end=None):
     # prints map nicely
     for i, r in enumerate(map_):
         string = ""
         for j, c in enumerate(r):
-            string = string +  bcolors.OKGREEN + str(c) + bcolors.ENDC
+            if (j, i) in path:
+                string = string +  bcolors.OKGREEN + str(c) + bcolors.ENDC
+            else:
+                string = string + str(c)
         string += " " + str(i)
         print(string)
 
@@ -71,7 +74,7 @@ class Elf(Player):
         return str(self)
     def opponent(self):
         return GOBLIN
-    
+
 class Goblin(Player):
     def __str__(self):
         return "G"
@@ -79,7 +82,7 @@ class Goblin(Player):
         return str(self)
     def opponent(self):
         return ELF
-    
+
 def breadth_first_search(player, map_):
     """ uses breadth_first_search to find closest path
     to target (reading order) """
@@ -87,7 +90,7 @@ def breadth_first_search(player, map_):
     queue.appendleft([[player.x, player.y], []])
     visited = set()
     possible_nodes = []
-    possible_paths = list()
+    possible_paths = []
     while True:
         if not queue:
             return None
@@ -101,16 +104,22 @@ def breadth_first_search(player, map_):
                     if str(map_[direction[1]][direction[0]]) not in (str(player), '#') and
                     direction not in visited]
 
+        if possible_paths and len(new_path) > len(possible_paths[0][1]):
+            # if we have multiple paths with same distance to target
+            # we sort end points in reading order
+            possible_paths.sort(key=lambda x: (x[1][-1][1], x[1][-1][0]))
+            return possible_paths[0][1][1]
+
         for p_node in possible_nodes:
             obj = map_[p_node[1]][p_node[0]]
             q_item = [p_node, new_path]
             if str(obj) == player.opponent():
-                return q_item[1][1]
+                possible_paths.append(q_item)
             else:
                 duplicates = [item[0] for item in queue if item[0] == p_node]
                 if not duplicates:
                     queue.appendleft(q_item)
-        
+
 def try_attack(player, map_, players):
     """attacks lowest hp nearby player if there is one """
     adjacent = [map_[player.y-1][player.x], map_[player.y][player.x-1], \
@@ -162,13 +171,14 @@ def put_players(init_map, elf_ap=3, goblin_ap=3):
             if col == ELF:
                 obj = Elf(j, i, ap=elf_ap, id_=id_)
                 players.append(obj)
+                id_ += 1
             elif col == GOBLIN:
                 obj = Goblin(j, i, id_=id_)
                 players.append(obj)
+                id_ += 1
             else:
                 # copy old object
                 obj = init_map[i][j]
-            id_ += 1
             init_map[i][j] = obj
 
     return init_map, players
@@ -176,13 +186,11 @@ def put_players(init_map, elf_ap=3, goblin_ap=3):
 def play_rounds(inp, players):
     round_ = 1
     while True:
-        print_map(inp)
         round_result = play_round(inp, players)
         if round_result == GAME_DONE:
             winner_hp = sum(player.hp for player in players)
             winner_race = str(players[0])
             winner_ap = str(players[0].ap)
-            print(players[0])
             print("Winners("  + winner_race + "(ap:" + winner_ap + ")" \
                   + ") won with " + \
                   str(winner_hp) + "hp remaining.")
@@ -191,8 +199,6 @@ def play_rounds(inp, players):
             print(str(winner_race) + " left:" + str(len(players)))
 
             return winner_race, winner_hp, players
-        #for player in players:
-        #    print(str(player) + str(player.coords()) + "- HP: " +str(player.hp))
         round_ += 1
 
 def play_game():
@@ -202,9 +208,9 @@ def play_game():
     part_one = copy.deepcopy(inp)
     _, players_one = put_players(part_one)
     play_rounds(part_one, players_one)
-    exit()
+
     # Part two - Ensure elvish victory
-    nr_of_elves = len([player for player in put_players(copy.deepcopy(inp))[1] if isinstance(player, Elf)]) 
+    nr_of_elves = len([player for player in put_players(copy.deepcopy(inp))[1] if isinstance(player, Elf)])
     part_two = copy.deepcopy(inp)
     elf_ap = 3
     winners = []
@@ -222,6 +228,3 @@ def play_game():
 
 if __name__ == "__main__":
     play_game()
-    #_, players = put_players(breadth_first_search_inp)
-    #play_rounds(breadth_first_search_inp, players)
-    #print(players)
