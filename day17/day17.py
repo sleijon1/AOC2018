@@ -77,6 +77,7 @@ def create_map(inp):
 
 
 def propagate_water(map_, water):
+    LEFT = True
     for unit in water:
         x = unit[0]
         y = unit[1]
@@ -109,6 +110,30 @@ def propagate_water(map_, water):
                 map_[y-1][x] = WATER
                 unit[1] = unit[1] - 1
         map_[y][x] = SAND
+
+def propagate_water_test(map_, water):
+    LEFT = True
+    x, y = water[-1]
+    y = y+1
+    while True
+        if map_[y+1][x] == SAND: # Go down
+            map_[y+1][x] = WATER
+        elif map_[y][x-1] == SAND: # Go left
+            map_[y][x-1] = WATER
+        elif map_[y][x+1] == SAND: # Go right
+            map_[y][x+1] = WATER
+        elif map_[y][x-1] == WATER  and map_[y+1][x-2] == SAND:
+            map_[y+1][x-2] = WATER
+        elif map_[y][x+1] == WATER  and map_[y+1][x+2] == SAND:
+            map_[y+1][x+2] = WATER
+        elif map_[y][x-1] == WATER  and map_[y][x-2] == SAND:
+            map_[y][x-2] = WATER
+        elif map_[y][x+1] == WATER  and map_[y][x+2] == SAND:
+            map_[y][x+2] = WATER
+        elif map_[y][x-1] in (CLAY, WATER) or map_[y][x+1] in (CLAY, WATER) and \
+             map_[y][x-2] in (CLAY, WATER) or map_[y][x+2] in (CLAY, WATER):
+            if  map_[y-1][x] == SAND:
+                map_[y-1][x] = WATER
 
 
 def run_ticks(map_, spring, reps=47):
