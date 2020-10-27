@@ -75,77 +75,28 @@ def create_map(inp):
     print_map(map_)
     return map_, spring
 
+def run_water(map_, coords, direction):
+    x, y = [coord+direction for coord, direction in zip(coords, direction)]
+    print("current point: " + str([x, y]))
+    if map_[y][x] == SAND:
+        print("sand")
+        map_[y][x] = WATER
+        coords = [coord+direction for coord, direction in zip(coords, direction)]
+        return run_water(map_, coords, direction)
+    if map_[y][x] == CLAY:
+        print("clay")
+        x, y = [coord-direction for coord, direction in zip(coords, direction)]
+        print(x,y)
+        if map_[y][x] == SAND:
+            run_water(map_, coords, direction=LEFT)
+        return None
 
-def propagate_water(map_, water):
-    LEFT = True
-    for unit in water:
-        x = unit[0]
-        y = unit[1]
-        if map_[y+1][x] == SAND: # Go down
-            map_[y+1][x] = WATER
-            unit[1] = unit[1] + 1
-        elif map_[y][x-1] == SAND: # Go left
-            map_[y][x-1] = WATER
-            unit[0] = unit[0] - 1
-        elif map_[y][x+1] == SAND: # Go right
-            map_[y][x+1] = WATER
-            unit[0] = unit[0] + 1
-        elif map_[y][x-1] == WATER  and map_[y+1][x-2] == SAND:
-            unit[0] = unit[0] - 2
-            unit[1] = unit[1] + 2
-            map_[y+1][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y+1][x+2] == SAND:
-            unit[0] = unit[0] + 2
-            unit[1] = unit[1] + 1
-            map_[y+1][x+2] = WATER
-        elif map_[y][x-1] == WATER  and map_[y][x-2] == SAND:
-            unit[0] = unit[0] - 2
-            map_[y][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y][x+2] == SAND:
-            unit[0] = unit[0] + 2
-            map_[y][x+2] = WATER
-        elif map_[y][x-1] in (CLAY, WATER) or map_[y][x+1] in (CLAY, WATER) and \
-             map_[y][x-2] in (CLAY, WATER) or map_[y][x+2] in (CLAY, WATER):
-            if  map_[y-1][x] == SAND:
-                map_[y-1][x] = WATER
-                unit[1] = unit[1] - 1
-        map_[y][x] = SAND
-
-def propagate_water_test(map_, water):
-    LEFT = True
-    x, y = water[-1]
-    y = y+1
-    while True
-        if map_[y+1][x] == SAND: # Go down
-            map_[y+1][x] = WATER
-        elif map_[y][x-1] == SAND: # Go left
-            map_[y][x-1] = WATER
-        elif map_[y][x+1] == SAND: # Go right
-            map_[y][x+1] = WATER
-        elif map_[y][x-1] == WATER  and map_[y+1][x-2] == SAND:
-            map_[y+1][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y+1][x+2] == SAND:
-            map_[y+1][x+2] = WATER
-        elif map_[y][x-1] == WATER  and map_[y][x-2] == SAND:
-            map_[y][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y][x+2] == SAND:
-            map_[y][x+2] = WATER
-        elif map_[y][x-1] in (CLAY, WATER) or map_[y][x+1] in (CLAY, WATER) and \
-             map_[y][x-2] in (CLAY, WATER) or map_[y][x+2] in (CLAY, WATER):
-            if  map_[y-1][x] == SAND:
-                map_[y-1][x] = WATER
-
-
-def run_ticks(map_, spring, reps=47):
-    start = [spring[0], spring[1]+1]
-    water = list()
-    map_[spring[1]+1][spring[0]] = WATER
-    for i in range(reps):
-        water.append(copy.deepcopy(start))
-        print(water)
-        print_map(map_)
-        propagate_water(map_, water)
-
+def run_ticks(map_, spring, reps=48):
+    start = [spring[0], spring[1]]
+    print_map(map_)
+    run_water(map_, coords=start, direction=DOWN)
+    print_map(map_)
+    
 if __name__ == "__main__":
     inp = read_and_strip(file_name="test.txt")
     f_inp = format_input(inp)
