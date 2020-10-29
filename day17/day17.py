@@ -1,9 +1,6 @@
-import copy
-import operator
 import sys
-sys.path.append("../")
-from day1.day1part2 import read_and_strip
-from collections import namedtuple
+import re
+sys.setrecursionlimit(3000)
 
 WATER = "|"
 CLAY = "#"
@@ -13,23 +10,6 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 DOWN = (0, 1)
 
-def format_input(inp):
-    """ formats input as [(static axis, val), (ranging axis, start, end)] """
-    formatted = []
-    for entry in inp:
-        new_entry = []
-        static, clay = entry.split(",")
-        clay = clay.strip().split("..")
-        x_y, start = clay[0].split("=")
-        end = int(clay[1])
-        static = static.split("=")
-        static[1] = int(static[1])
-        new_entry.append(tuple(static))
-        new_entry.append((x_y, int(start), end))
-        formatted.append(new_entry)
-    #print(formatted)
-    return formatted
-
 def print_map(map_):
     for row in map_:
         string = ""
@@ -37,119 +17,59 @@ def print_map(map_):
             string = string + col
         print(string)
 
-def create_map(inp):
-    """ creates map from formatted input """
-    all_x = []
-    all_y = []
-    for entry in inp:
-        if entry[0][0] == 'x':
-            all_x.append(entry[0][1])
-            all_y.append(entry[1][2])
-            all_y.append(entry[1][1])
-        elif entry[0][0] == 'y':
-            all_y.append(entry[0][1])
-            all_x.append(entry[1][2])
-            all_x.append(entry[1][1])
+def run_water(map_, x, y, direction):
+    if map_[y][x] == SAND:
+        map_[y][x] = WATER
+    if y == len(map_) - 1:
+        return
+    if map_[y][x] == CLAY:
+        return x
+    if map_[y+1][x] == SAND:
+        run_water(map_, x, y+1, 0)
+    if map_[y+1][x] in CLAY+REST_WATER:
+        if direction:
+            return run_water(map_, x+direction, y, direction)
+        else:
+            left = run_water(map_, x-1, y, -1)
+            right = run_water(map_, x+1, y, 1)
+            if map_[y][left] == "#" and map_[y][right] == "#":
+                for fill in range(left+1, right):
+                    map_[y][fill] = REST_WATER
+    else:
+        return x
 
-    map_ = []
-    # water can flow on the side of the min and max x's
-    min_x = min(all_x)-1
-    max_x = max(all_x)+1
-    min_y = 0
-    for y in range(min_y, max(all_y)+1):
-        row = []
-        for x in range(min_x-1, max_x):
-            row.append(".")
-        map_.append(row)
+def run_ticks():
+    data = []
+    for line in open("input.txt").read().splitlines():
+        a, b, c = map(int, re.findall('\d+', line))
+        data += [(a, a, b, c)] if line[0] == 'x' else [(b, c, a, a)]
+    
+    Z = zip(*data)
+    print(data)
+    Z = list(Z)
+    minX, maxX, minY, maxY = min(Z[0]), max(Z[1]), min(Z[2]), max(Z[3])
+    
+    map_ = [['.']*(maxX - minX + 2) for _ in range(maxY + 1)]
+    for x1, x2, y1, y2 in data:
+        for x in range(x1, x2 + 1):
+            for y in range(y1, y2 + 1):
+                map_[y][x - minX + 1] = '#'
+    springX, springY = 500 - minX + 1, 0
+    map_[0][springX] = '+'
 
-    for clay in inp:
-        if clay[0][0] == 'x':
-            for y in range(clay[1][1], clay[1][2]+1):
-                map_[y][clay[0][1]-min_x+1] = "#"
-        elif clay[0][0] == 'y':
-            for x in range(clay[1][1], clay[1][2]+1):
-                map_[clay[0][1]][x-min_x+1] = "#"
-    # water spring
-    spring = (max_x-500, 0)
-    map_[0][max_x-500] = "+"
-    print_map(map_)
-    return map_, spring
+    x, y = springX, springY
+    run_water(map_, x, y, 0)
+    water = resting_water = 0
+    for i in range(minY, maxY+1):
+        for tile in map_[i]:
+            if tile == WATER:
+                water += 1
+            elif tile == REST_WATER:
+                resting_water += 1
 
-
-def propagate_water(map_, water):
-    LEFT = True
-    for unit in water:
-        x = unit[0]
-        y = unit[1]
-        if map_[y+1][x] == SAND: # Go down
-            map_[y+1][x] = WATER
-            unit[1] = unit[1] + 1
-        elif map_[y][x-1] == SAND: # Go left
-            map_[y][x-1] = WATER
-            unit[0] = unit[0] - 1
-        elif map_[y][x+1] == SAND: # Go right
-            map_[y][x+1] = WATER
-            unit[0] = unit[0] + 1
-        elif map_[y][x-1] == WATER  and map_[y+1][x-2] == SAND:
-            unit[0] = unit[0] - 2
-            unit[1] = unit[1] + 2
-            map_[y+1][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y+1][x+2] == SAND:
-            unit[0] = unit[0] + 2
-            unit[1] = unit[1] + 1
-            map_[y+1][x+2] = WATER
-        elif map_[y][x-1] == WATER  and map_[y][x-2] == SAND:
-            unit[0] = unit[0] - 2
-            map_[y][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y][x+2] == SAND:
-            unit[0] = unit[0] + 2
-            map_[y][x+2] = WATER
-        elif map_[y][x-1] in (CLAY, WATER) or map_[y][x+1] in (CLAY, WATER) and \
-             map_[y][x-2] in (CLAY, WATER) or map_[y][x+2] in (CLAY, WATER):
-            if  map_[y-1][x] == SAND:
-                map_[y-1][x] = WATER
-                unit[1] = unit[1] - 1
-        map_[y][x] = SAND
-
-def propagate_water_test(map_, water):
-    LEFT = True
-    x, y = water[-1]
-    y = y+1
-    while True
-        if map_[y+1][x] == SAND: # Go down
-            map_[y+1][x] = WATER
-        elif map_[y][x-1] == SAND: # Go left
-            map_[y][x-1] = WATER
-        elif map_[y][x+1] == SAND: # Go right
-            map_[y][x+1] = WATER
-        elif map_[y][x-1] == WATER  and map_[y+1][x-2] == SAND:
-            map_[y+1][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y+1][x+2] == SAND:
-            map_[y+1][x+2] = WATER
-        elif map_[y][x-1] == WATER  and map_[y][x-2] == SAND:
-            map_[y][x-2] = WATER
-        elif map_[y][x+1] == WATER  and map_[y][x+2] == SAND:
-            map_[y][x+2] = WATER
-        elif map_[y][x-1] in (CLAY, WATER) or map_[y][x+1] in (CLAY, WATER) and \
-             map_[y][x-2] in (CLAY, WATER) or map_[y][x+2] in (CLAY, WATER):
-            if  map_[y-1][x] == SAND:
-                map_[y-1][x] = WATER
-
-
-def run_ticks(map_, spring, reps=47):
-    start = [spring[0], spring[1]+1]
-    water = list()
-    map_[spring[1]+1][spring[0]] = WATER
-    for i in range(reps):
-        water.append(copy.deepcopy(start))
-        print(water)
-        print_map(map_)
-        propagate_water(map_, water)
+    print("Water tiles: " + str(water))
+    print("Resting water tiles: " + str(resting_water))
+    print("sum tiles: " + str(resting_water+water))
 
 if __name__ == "__main__":
-    inp = read_and_strip(file_name="test.txt")
-    f_inp = format_input(inp)
-    for n in f_inp:
-        print(n)
-    map_, spring = create_map(f_inp)
-    run_ticks(map_, spring)
+    run_ticks()
