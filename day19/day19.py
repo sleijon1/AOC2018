@@ -28,7 +28,7 @@ class Computer:
         self.regs = regs
         self.instruction_ptr = None
 
-    def set_regs(self, values=[0,0,0,0,0,0]):
+    def set_regs(self, values=[0, 0, 0, 0, 0, 0]):
         """ default - reset regs """
         self.regs = values
 
@@ -83,7 +83,6 @@ def format_input(inp):
 
 def execute_program(pc, instructions):
     """ executes the instructions on the Computer pc """
-    print(pc)
     while True:
         try:
             instruction = instructions[pc.regs[pc.instruction_ptr]]
@@ -92,22 +91,32 @@ def execute_program(pc, instructions):
             pc.regs[pc.instruction_ptr] -= 1
             break
         r1, r2, r3 = instruction[1], instruction[2], instruction[3]
-        #print("Doing instruction: " + str(instruction))
-        #print(pc.regs)
+        #  print("Doing instruction: " + str(instruction))
+        #  print(pc.regs)
         pc.operations[instruction[0]]([r1, r2, r3])
         pc.regs[pc.instruction_ptr] += 1
-    print("Last state computer regs: " + str(pc.regs))
+    print("Last state computer regs part one: " + str(pc.regs))
+    return pc.regs
+
+def part_two():
+    """ reverse engineer of what the instructions
+    actually do:
+    adds all the values (to register 0) from 0 to 10551275
+    that 10551275 are divisible by
+    """
+    r_0 = 0
+    for i in range(1, 10551276):
+        if (10551275/i).is_integer():
+            r_0 = r_0 + i
+    print("register 0 final value part two: " + str(r_0))
+    return r_0
+
 
 if __name__ == "__main__":
     INPUT = read_and_strip(file_name="input.txt")
     ptr_reg, INPUT = format_input(INPUT)
-    computer = Computer()
+    computer = Computer([0, 0, 0, 0, 0, 0])
     computer.instruction_ptr = ptr_reg
-    print(INPUT, ptr_reg, computer.regs)
-    execute_program(computer, INPUT)
-
-    test = Computer([1, 0, 0, 0, 0, 0])
-    test.instruction_ptr = ptr_reg
-    #for i in range(2, 10551275):
-    #    test.regs[1] = i
-        #execute_program(test, INPUT)
+    print("Instructions:\n" + str(INPUT) + "\nInstruction ptr: " + str(ptr_reg))
+    final_state_regs_p1 = execute_program(computer, INPUT)
+    final_value = part_two()
