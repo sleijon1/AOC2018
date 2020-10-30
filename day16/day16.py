@@ -146,7 +146,7 @@ def test_opcodes(inp):
         ops = []
         possible_op = 0
         before = sample[0]
-        instruction = sample[1][1:4] # skip opcode
+        instruction = sample[1][1:4]  # skip opcode
         after = sample[2]
         for op in op_names:
             computer.set_regs(list(before))

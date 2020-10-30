@@ -43,12 +43,12 @@ def run_ticks():
     for line in open("input.txt").read().splitlines():
         a, b, c = map(int, re.findall('\d+', line))
         data += [(a, a, b, c)] if line[0] == 'x' else [(b, c, a, a)]
-    
+
     Z = zip(*data)
     print(data)
     Z = list(Z)
     minX, maxX, minY, maxY = min(Z[0]), max(Z[1]), min(Z[2]), max(Z[3])
-    
+
     map_ = [['.']*(maxX - minX + 2) for _ in range(maxY + 1)]
     for x1, x2, y1, y2 in data:
         for x in range(x1, x2 + 1):
