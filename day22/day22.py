@@ -30,8 +30,8 @@ def part_one():
     print("Solution part 1: " + str(sum([erosion % 3 for erosion in erosion_levels.values()])))
 
 def part_two():
-    for x in range(target_x+15):
-        for y in range(target_y+1):
+    for x in range(target_x+100):
+        for y in range(target_y+800):
             if (x == 0 and y == 0) or (x == target_x and y == target_y):
                 continue
             elif y == 0:
@@ -84,28 +84,34 @@ def part_two():
                     new_nodes.append([new_path, minutes+1, tool, item])
             elif type_dict[item] == '.':
                 if tool not in ("torch", "climbing_gear"):
-                    new_nodes.append([new_path, minutes+8, "torch",
-                                       item])
-                    new_nodes.append([new_path, minutes+8,
-                                      "climbing_gear",
-                                      item])
+                    if type_dict[pos] == "|":
+                        new_nodes.append([new_path, minutes+8, "torch",
+                                          item])
+                    elif type_dict[pos] == "=":
+                        new_nodes.append([new_path, minutes+8,
+                                          "climbing_gear",
+                                          item])
                 else:
                     new_nodes.append([new_path, minutes+1, tool, item])
             elif type_dict[item] == '|':
                 if tool not in ("torch", "neither"):
-                    new_nodes.append([new_path, minutes+8, "torch",
-                                       item])
-                    new_nodes.append([new_path, minutes+8, "neither",
-                                       item])
+                    if type_dict[pos] == ".":
+                        new_nodes.append([new_path, minutes+8, "torch",
+                                          item])
+                    elif type_dict[pos] == "=":
+                        new_nodes.append([new_path, minutes+8, "neither",
+                                          item])
                 else:
                     new_nodes.append([new_path, minutes+1, tool, item])
             elif type_dict[item] == '=':
-                if tool not in ("climbing_gear", " neither"):
-                    new_nodes.append([new_path, minutes+8, "neither",
-                                       item])
-                    new_nodes.append([new_path, minutes+8,
-                                      "climbing_gear",
-                                       item])
+                if tool not in ("climbing_gear", "neither"):
+                    if type_dict[pos] == "|":
+                        new_nodes.append([new_path, minutes+8, "neither",
+                                          item])
+                    elif type_dict[pos] == ".":
+                        new_nodes.append([new_path, minutes+8,
+                                          "climbing_gear",
+                                          item])
                 else:
                     new_nodes.append([new_path, minutes+1, tool, item])
 
@@ -115,6 +121,8 @@ def part_two():
                 key = (new_node[-1], new_node[2])
                 if cost_table[key] <= new_node[1]:
                     continue
+                else:
+                    cost_table[key] = new_node[1]
             except KeyError:
                 cost_table[key] = new_node[1]
 
