@@ -17,12 +17,18 @@ class Group:
         self.ID = str(ID)
 
     def __str__(self):
-        return str((self.ID, self.TYPE, self.hit_points, self.immunities, self.damage,
-                    self.damage_type, self.initiative, self.weaknesses,
-                    self.units))
+        return str(
+            self.ID + self.TYPE + " - " + str(self.units) + " units each with " + str(self.hit_points) +\
+            "( immune to, " + str(self.immunities) + "; weak to " + str(self.weaknesses) + ") " \
+            + "with an attack that does " + str(self.damage) + " " + self.damage_type \
+            + " at initiative " + str(self.initiative)
+        )
 
     def __repr__(self):
         return str(self)
+
+    def compact_str(self):
+        return str(self.ID + self.TYPE)
 
     def effective_power(self):
         return self.damage*self.units
@@ -32,17 +38,11 @@ class Group:
 
     def attack(self):
         dmg = damage_potential(self, self.target)
-        units_dead = floor(dmg/self.target.hit_points)
-        print(dmg)
-        print(self.target.units)
-        copy = self.target.units
+        units_dead = min(self.target.units, dmg // self.target.hit_points)
         self.target.units -= units_dead
-        if self.target.units < 0:
-            units_dead = copy
-            self.target.units = 0
-        print("attacker: " + self.TYPE + " " +str(self.ID) + \
-              " defender: " + self.target.TYPE + " " + str(self.target.ID) + \
-              " killing " + str(units_dead))
+        # print("attacker: " + self.TYPE + " " +str(self.ID) + \
+        #      " defender: " + self.target.TYPE + " " + str(self.target.ID) + \
+        #      " killing " + str(units_dead))
         return self.target.units
 
     def eq(self, other):
@@ -52,6 +52,9 @@ class Group:
             self.TYPE == other.TYPE
         )
 
+
+""" ---------------------------- PARSING ----------------------------  """
+
 ims, inf = open("input.txt").read().split("Infection:")
 ims = ims.strip()
 ims_groups = ims.split("\n")
@@ -59,10 +62,7 @@ ims_groups.pop(0)
 inf = inf.strip()
 inf_groups = inf.split("\n")
 
-inf_army = []
-ims_army = []
-
-def create_group(groups, TYPE):
+def create_group(groups, TYPE, boost=0):
     """ creates Group classes of all groups """
     army = []
     for i, grp in enumerate(groups):
@@ -89,12 +89,11 @@ def create_group(groups, TYPE):
                 weak = disp2[2:]
         units, hp, dmg, initiative = map(int, re.findall(r"\d+", grp))
         dmg_type = re.search("\d+ \w* damage", grp)[0].split(" ")[1]
-        army.append(Group(hp, immunities, dmg, dmg_type, initiative,
+        army.append(Group(hp, immunities, dmg+boost, dmg_type, initiative,
                                    weak, units, TYPE, i+1))
     return army
 
-ims_army = create_group(ims_groups, TYPE="ims")
-inf_army = create_group(inf_groups, TYPE="inf")
+""" ---------------------------- PARSING ----------------------------  """
 
 def damage_potential(attacker, defender):
     """ returns damage potential for attacker on defender """
@@ -106,99 +105,75 @@ def damage_potential(attacker, defender):
         return attacker.damage * attacker.units
 
 def target_selection(ims_army, inf_army):
-    all_grps = []
-    taken_inf = []
-    taken_ims = []
-    for grp in ims_army:
-        all_grps.append(grp)
-    for grp in inf_army:
-        all_grps.append(grp)
-    order = []
-    for group in all_grps:
-        order.append([group, group.effective_power(), group.initiative])
-    order.sort(key=lambda x: (x[1], x[2]))  # effective power then initiative
-    order.reverse() # for looping
+    groups = ims_army+inf_army
+    order = [(group, group.effective_power(), group.initiative) for group in groups]
+    order.sort(key=lambda x: (x[1], x[2]), reverse = True)
+    opponent = {"inf": list(ims_army), "ims": list(inf_army)}
     for attacker in order:
         grp = attacker[0]
-        if grp.TYPE == "inf":
-            target = None
-            target_i = None
-            for i, ims_grp in enumerate(ims_army):
-                if i in taken_ims:
-                    continue
-                if target is None or \
-                   damage_potential(grp, ims_grp) >\
-                   damage_potential(grp, target):
-                    target = ims_grp
-                    target_i = i
-                elif damage_potential(grp, ims_grp) \
-                    == damage_potential(grp, target):
-                    if ims_grp.effective_power() > target.effective_power():
-                        target = ims_grp
-                        target_i = i
-                    elif ims_grp.effective_power() == target.effective_power():
-                        if ims_grp.initiative > target.initiative:
-                            target = ims_grp
-                            target_i = i
-
-            if target is not None and damage_potential(grp, target) == 0:
-                target = None
-            else:
-                taken_ims.append(target_i)
-            grp.set_target(target)
-
-        elif grp.TYPE == "ims":
-            target = None
-            target_i = None
-            for i, inf_grp in enumerate(inf_army):
-                if i in taken_inf:
-                    continue
-                if target is None or \
-                   damage_potential(grp, inf_grp) >\
-                   damage_potential(grp, target):
-                    target = inf_grp
-                    target_i = i
-                elif damage_potential(grp, inf_grp) \
-                    == damage_potential(grp, target):
-                    if inf_grp.effective_power() > target.effective_power():
-                        target = inf_grp
-                        target_i = i
-                    elif inf_grp.effective_power() == target.effective_power():
-                        if inf_grp.initiative > target.initiative:
-                            target = inf_grp
-                            target_i = i
-            if target is not None and damage_potential(grp, target) == 0:
-                target = None
-            else:
-                taken_inf.append(target_i)
-            grp.set_target(target)
-
+        defender = opponent[grp.TYPE]
+        possibilities = [(def_grp, damage_potential(grp, def_grp),
+                        def_grp.effective_power(),
+                        def_grp.initiative)
+                        for def_grp in defender]
+        possibilities.sort(key = lambda x: (x[1], x[2], x[3]), reverse = True)
+        if possibilities and damage_potential(grp, possibilities[0][0]) > 0:
+            grp.set_target(possibilities[0][0])
+            opponent[grp.TYPE].remove(possibilities[0][0])
+        else:
+            grp.set_target(None)
 
 def war(ims_army, inf_army):
-    all_grps = []
-    for grp in ims_army:
-        all_grps.append(grp)
-    for grp in inf_army:
-        all_grps.append(grp)
-    all_grps.sort(key=lambda x: x.initiative)
-    all_grps.reverse()
+    all_grps = ims_army + inf_army
+    all_grps.sort(key=lambda x: x.initiative, reverse=True)
+    opponent = {"inf": ims_army, "ims": inf_army}
     while ims_army and inf_army:
         target_selection(ims_army, inf_army)
-        for grp in all_grps:
-            if grp.target is None:
-                print("noneeri")
-                continue
-            if grp.attack() == 0:
-                all_grps.remove(grp.target)
-                try:
-                    ims_army.remove(grp.target)
-                except ValueError:
-                    inf_army.remove(grp.target)
-            grp.target = None
-        print(all_grps)
-        #print(sum([grp.units for grp in all_grps]))
-    print(all_grps)
-    print("Solution part 1: type = " + all_grps[0].TYPE + " | units left = " + \
-          str(sum([group.units for group in all_grps])))
+        no_target = 0
+        draw = False
 
-war(ims_army, inf_army)
+        for grp in all_grps:
+            #print(grp)
+            if grp.target is None:
+                no_target += 1
+                if no_target == len(all_grps):
+                    draw = True
+                    break
+                continue
+            if grp.target is not None:
+                remaining_hp = grp.attack()
+                if remaining_hp == 0:
+                    all_grps.remove(grp.target)
+                    opponent[grp.TYPE].remove(grp.target)
+                grp.target = None
+        if draw:
+            print("draw")
+            break
+    # if draw:
+    #     print("draw.")
+    #print(all_grps)
+    print("Winners type = " + all_grps[0].TYPE + " | units left = " + \
+          str(sum([group.units for group in all_grps])))
+    return all_grps, all_grps[0].TYPE
+
+""" PART 1 """
+all_grps, _ = war(create_group(ims_groups, TYPE="ims"), create_group(inf_groups, TYPE="inf"))
+print(all_grps)
+print("Solution part 1: type = " + all_grps[0].TYPE + " | units left = " + \
+      str(sum([group.units for group in all_grps])))
+
+""" PART 2 """
+def boost_ims():
+    """ boosts immune system until it defeats the infection """
+    winner_type = None
+    boost = 0
+    inf_army = None
+    while inf_army is None or len(inf_army):
+        ims_army = create_group(ims_groups, TYPE="ims", boost=boost)
+        inf_army = create_group(inf_groups, TYPE="inf")
+        winners, winner_type = war(ims_army, inf_army)
+        boost += 1
+    print("Solution part 2: type = " + winners[0].TYPE + " | units left = " + \
+          str(sum([g.units for g in winners])) + " | amount of boost: " + str(boost-1))
+
+boost_ims()
