@@ -17,7 +17,8 @@ print("Number of in range drones: " + str(sum(distances <= most_powerful[0][3]))
       " of master drone: " + str(most_powerful[0]))
 
 
-""" z3 constraint solver comments:
+"""
+  z3 constraint solver comments:
   If(x,y,z) - if x then else z
   x = Int(x) - declare int x
   o.add(x == sum(y)) - for any solution
