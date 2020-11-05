@@ -83,6 +83,8 @@ def format_input(inp):
 
 def execute_program(pc, instructions):
     """ executes the instructions on the Computer pc """
+    vals = []
+    i = 0
     while True:
         try:
             instruction = instructions[pc.regs[pc.instruction_ptr]]
@@ -93,11 +95,25 @@ def execute_program(pc, instructions):
         r1, r2, r3 = instruction[1], instruction[2], instruction[3]
         print("Doing instruction: " + str(instruction))
         print(pc.regs)
+
         pc.operations[instruction[0]]([r1, r2, r3])
-        if pc.regs[pc.instruction_ptr] == 29:
+        if pc.regs[pc.instruction_ptr] == 6:
+            print("pc.regs[2] " + str(pc.regs[2]))
+            print(pc.regs)
+            print(instruction)
+            if pc.regs[2] != 65536:
+                exit()
+        if pc.regs[pc.instruction_ptr] == 28:
+            vals.append(pc.regs[3])
+            print(pc.regs)
+            print("current min: " + str(min(vals)))
             print(instructions[pc.regs[pc.instruction_ptr]])
-            exit()
+            print(len(set(vals)))
+            #exit()
         pc.regs[pc.instruction_ptr] += 1
+        i += 1
+        #if i == 100:
+        #    exit()
     print("Last state computer regs part one: " + str(pc.regs))
     return pc.regs
 
@@ -114,17 +130,47 @@ def part_two():
     print("register 0 final value part two: " + str(r_0))
     return r_0
 
+def part_two_21():
+    reg3 = 0
+    reg2 = 65536
+    vals = []
+    for i in range(0, 10000000):
+        reg2 = reg3 | 65536
+        reg3 = 10736359
+        reg1 = reg2 & 255
+        reg3 = reg1 + reg3
+        reg3 = reg3 & 16777215
+        reg3 = reg3*65899
+        reg3 = reg3 & 16777215
+        vals.append(reg3)
+        print(reg3)
+        exit()
+        #if len(set(vals)) == 128:
+        #    print(reg3)
+            #exit()
+        if reg3 == 16311888:
+            print("dwqd")
+            exit()
+    pass
 
 if __name__ == "__main__":
     INPUT = read_and_strip(file_name="input.txt")
     ptr_reg, INPUT = format_input(INPUT)
     print(ptr_reg, INPUT)
-    computer = Computer([16311888, 0, 0, 0, 0, 0])
+    # 5953, 197697
+    computer = Computer([0, 0, 0, 0, 0, 0])
+    oc = Computer([0, 0, 0, 197697, 0, 0])
+    oc.operations["bani"]([3, 16777215, 4])
+    print(oc.regs)
+    #part_two_21()
+    #exit()
     computer.instruction_ptr = ptr_reg
     final_state_regs_p1 = execute_program(computer, INPUT)
-# r[5] = r[1] +1  if r[5] * 256 > r[2] something happens
-# 11714978
-# 8617725
-# 5322775
-# 9935705
-# 736874
+# set register 3 to 0
+# or register with 65536 -> 0 or 65536 = 65536 put into 2
+# set register 3 to 10736359
+# and register 2 with 255 and put into register 1 (max value 255 lowest value 0)
+# add value in register 1 (0-255) with value in register 3 (10736539) and put into 3
+# and register 3 with 16777215 and put into register 3 
+# multiply register 3 with 65899 and put into register 3
+# and register 3 with 16777215 and put into 3 - final value
